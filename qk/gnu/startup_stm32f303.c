@@ -1,4 +1,4 @@
-/* File: startup_stm32f4xx.c
+/* File: startup_stm32f303.c
  * Purpose: startup file for stm32f4xx Cortex-M4 device.
  *          Should be used with GCC 'GNU Tools ARM Embedded'
  * Version: CMSIS 4.3.0
