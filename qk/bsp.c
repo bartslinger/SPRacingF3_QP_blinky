@@ -35,11 +35,7 @@
 #include "blinky.h"
 #include "bsp.h"
 
-#include "stm32f303xc.h"
-//#include "TM4C123GH6PM.h"        /* the device specific header (TI) */
-//#include "rom.h"                 /* the built-in ROM functions (TI) */
-//#include "sysctl.h"              /* system control driver (TI) */
-//#include "gpio.h"                /* GPIO driver (TI) */
+#include "stm32f3xx.h"
 /* add other drivers if necessary... */
 
 //Q_DEFINE_THIS_FILE
@@ -69,20 +65,8 @@ Q_ASSERT_COMPILE(MAX_KERNEL_AWARE_CMSIS_PRI <= (0xFF >>(8-__NVIC_PRIO_BITS)));
 
 /* ISRs defined in this BSP ------------------------------------------------*/
 void SysTick_Handler(void);
-//void GPIOPortA_IRQHandler(void);
 
 /* Local-scope objects -----------------------------------------------------*/
-#define LED_RED     (1U << 1)
-#define LED_GREEN   (1U << 3)
-#define LED_BLUE    (1U << 2)
-static uint32_t const l_led_pin[] = {
-    LED_GREEN,
-    LED_RED,
-    LED_BLUE
-};
-
-#define BTN_SW1     (1U << 4)
-#define BTN_SW2     (1U << 0)
 
 /* ISRs used in this project ===============================================*/
 void SysTick_Handler(void) {
@@ -91,13 +75,12 @@ void SysTick_Handler(void) {
     QK_ISR_EXIT();  /* inform QK about exiting an ISR */
 }
 
-
 /* BSP functions ===========================================================*/
 void BSP_init(void) {
     /* NOTE: SystemInit() already called from the startup code
     *  but SystemCoreClock needs to be updated
     */
-//    SystemCoreClockUpdate();
+    SystemCoreClockUpdate();
 
     /* configure the FPU usage by choosing one of the options... */
 #if 1
@@ -122,30 +105,25 @@ void BSP_init(void) {
     * FPU registers. This option should be used with CAUTION.
     */
 //    FPU->FPCCR &= ~((1U << FPU_FPCCR_ASPEN_Pos)
-                   | (1U << FPU_FPCCR_LSPEN_Pos));
+//                   | (1U << FPU_FPCCR_LSPEN_Pos));
 #endif
 
     /* enable clock for to the peripherals used by this application... */
-//    SYSCTL->RCGCGPIO |= (1U << 5); /* enable Run mode for GPIOF */
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    GPIOB->MODER = (GPIO_MODER_MODER3_0);
+    GPIOB->OTYPER = 0x00000000;
+    GPIOB->OSPEEDR = 0x00000000;
+    GPIOB->PUPDR = 0x00000000;
 
-    /* configure the LEDs and push buttons */
-//    GPIOF->DIR |= (LED_RED | LED_GREEN | LED_BLUE);/* set direction: output */
-//    GPIOF->DEN |= (LED_RED | LED_GREEN | LED_BLUE); /* digital enable */
-//    GPIOF->DATA_Bits[LED_RED]   = 0U; /* turn the LED off */
-//    GPIOF->DATA_Bits[LED_GREEN] = 0U; /* turn the LED off */
-//    GPIOF->DATA_Bits[LED_BLUE]  = 0U; /* turn the LED off */
-
-    /* configure the Buttons */
-//    GPIOF->DIR &= ~(BTN_SW1 | BTN_SW2); /*  set direction: input */
-//    ROM_GPIOPadConfigSet(GPIOF_BASE, (BTN_SW1 | BTN_SW2),
-//                         GPIO_STRENGTH_2MA, GPIO_PIN_TYPE_STD_WPU);
-}
-/*..........................................................................*/
-void BSP_ledOff(uint_fast8_t n) {
-//    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
+  GPIOB->ODR &= ~(1U << 3);
+//    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
+}
+/*..........................................................................*/
+void BSP_ledOff(uint_fast8_t n) {
+  GPIOB->ODR |= (1U << 3);
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0xFFU;
 }
 
@@ -168,6 +146,8 @@ void QF_onStartup(void) {
     /* ... */
 
     /* enable IRQs... */
+    //NVIC_EnableIRQ(SysTick_IRQn);
+
 }
 /*..........................................................................*/
 void QF_onCleanup(void) {
@@ -175,11 +155,12 @@ void QF_onCleanup(void) {
 /*..........................................................................*/
 void QK_onIdle(void) {
     /* toggle LED2 on and then off, see NOTE01 */
-    QF_INT_DISABLE();
+    //QF_INT_DISABLE();
 //    GPIOF->DATA_Bits[LED_BLUE] = 0xFFU;
 //    GPIOF->DATA_Bits[LED_BLUE] = 0x00U;
-    QF_INT_ENABLE();
 
+    //QF_INT_ENABLE();
+    //__WFI();
 #ifdef NDEBUG
     /* Put the CPU and peripherals to the low-power mode.
     * you might need to customize the clock management for your application,

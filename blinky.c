@@ -65,7 +65,7 @@ QState Blinky_initial(Blinky * const me, QEvt const * const e) {
     (void)e; /* avoid compiler warning about unused parameter */
 
     /* arm the time event to expire in half a second and every half second */
-    QTimeEvt_armX(&me->timeEvt, BSP_TICKS_PER_SEC/2U, BSP_TICKS_PER_SEC/2U);
+    QTimeEvt_armX(&me->timeEvt, 2*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);
     return Q_TRAN(&Blinky_off);
 }
 /*..........................................................................*/

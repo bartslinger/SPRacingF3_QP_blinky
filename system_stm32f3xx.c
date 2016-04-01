@@ -99,12 +99,10 @@
   * @{
   */
 
-#include "stm32f303xc.h"
+#include "stm32f3xx.h"
 #define HSE_VALUE     8000000
 #define HSI_VALUE     8000000
 #define HSE_STARTUP_TIMEOUT ((uint16_t)0x5000)
-
-typedef enum {RESET = 0, SET = !RESET} FlagStatus, ITStatus;
 
 uint32_t hse_value = HSE_VALUE;
 
@@ -195,7 +193,7 @@ void SystemInit(void)
 
   /* Configure the System clock source, PLL Multiplier and Divider factors, 
      AHB/APBx prescalers and Flash settings ----------------------------------*/
-  //SetSysClock(); // called from main()
+  SetSysClock(); // called from main()
   
 #ifdef VECT_TAB_SRAM
   SCB->VTOR = SRAM_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */

@@ -80,7 +80,7 @@ void SysTick_Handler         (void) __attribute__ ((weak, alias("Default_Handler
 
 /* external interrupts...   */
 void WWDG_IRQHandler         (void) __attribute__ ((weak, alias("Default_Handler")));
-void PVD_IRQHandler          (void) __attribute__ ((weak, alias("Default_Handler")));
+void PVD_IRQHandler          (void) __attribute__ ((weak, alias("Default_Handler"))); ///< Deze zorgt voor problemen
 void TAMP_STAMP_IRQHandler   (void) __attribute__ ((weak, alias("Default_Handler")));
 void RTC_WKUP_IRQHandler     (void) __attribute__ ((weak, alias("Default_Handler")));
 void FLASH_IRQHandler        (void) __attribute__ ((weak, alias("Default_Handler")));
@@ -162,6 +162,8 @@ int const g_pfnVectors[] = {
     0,                              /* Reserved                        */
     0,                              /* Reserved                        */
     (int)&SVC_Handler,              /* SVCall handler                  */
+    0,                              /* Debug monitor handler           */
+    0,                              /* Reserved                        */
     (int)&PendSV_Handler,           /* The PendSV handler              */
     (int)&SysTick_Handler,          /* The SysTick handler             */
 

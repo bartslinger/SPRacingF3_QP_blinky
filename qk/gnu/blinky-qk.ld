@@ -42,7 +42,7 @@ MEMORY { /* memory map of STM32F303 */
 }
 
 /* The size of the stack used by the application. NOTE: you need to adjust  */
-STACK_SIZE = 512;
+STACK_SIZE = 4096;
 
 /* The size of the heap used by the application. NOTE: you need to adjust   */
 HEAP_SIZE = 0;

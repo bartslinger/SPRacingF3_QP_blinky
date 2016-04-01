@@ -129,7 +129,7 @@ LIB_DIRS  :=
 LIBS      :=
 
 # defines
-DEFINES   :=
+DEFINES   := -DSTM32F303xC
 
 # ARM CPU, ARCH, FPU, and Float-ABI types...
 # ARM_CPU:   [cortex-m0 | cortex-m0plus | cortex-m1 | cortex-m3 | cortex-m4]
@@ -237,7 +237,7 @@ endif # ......................................................................
 
 LINKFLAGS = -T$(LD_SCRIPT) $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) \
 	-mthumb -nostdlib \
-	-Wl,-Map,$(BIN_DIR)/$(OUTPUT).map,--cref,--gc-sections $(LIB_DIRS)
+        -Wl,-Map,$(BIN_DIR)/$(OUTPUT).map,--cref,--gc-sections,-u,IVT $(LIB_DIRS)
 
 
 ASM_OBJS     := $(patsubst %.s,%.o,  $(notdir $(ASM_SRCS)))
