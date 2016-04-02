@@ -67,6 +67,7 @@ Q_ASSERT_COMPILE(MAX_KERNEL_AWARE_CMSIS_PRI <= (0xFF >>(8-__NVIC_PRIO_BITS)));
 void SysTick_Handler(void);
 
 /* Local-scope objects -----------------------------------------------------*/
+uint16_t my_dma_buffer[] = {1<<12,0,0,0,0,0,1<<12,1<<11,1<<11,1<<11,1<<11,1<<11};
 
 /* ISRs used in this project ===============================================*/
 void SysTick_Handler(void) {
@@ -109,21 +110,44 @@ void BSP_init(void) {
 #endif
 
     /* enable clock for to the peripherals used by this application... */
-    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-    GPIOB->MODER = (GPIO_MODER_MODER3_0);
-    GPIOB->OTYPER = 0x00000000;
-    GPIOB->OSPEEDR = 0x00000000;
-    GPIOB->PUPDR = 0x00000000;
+    RCC->AHBENR |= RCC_AHBENR_GPIOEEN;
+    GPIOE->MODER = (GPIO_MODER_MODER11_0) | (GPIO_MODER_MODER12_0);
+    GPIOE->OTYPER = 0x00000000;
+    GPIOE->OSPEEDR = 0x00000000;
+    GPIOE->PUPDR = 0x00000000;
+    GPIOE->ODR |= (1 << 12);
 
+    /* Try GPIO DMA */
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
+    DMA1_Channel1->CCR |= DMA_CCR_MEM2MEM;
+    DMA1_Channel1->CCR |= DMA_CCR_MSIZE_0; /* Half word memory size */
+    DMA1_Channel1->CCR |= DMA_CCR_PSIZE_0; /* Half word periph size */
+    DMA1_Channel1->CCR |= DMA_CCR_MINC; /* Only memory increment mode */
+    DMA1_Channel1->CCR |= DMA_CCR_CIRC; /* Circular mode */
+    DMA1_Channel1->CCR |= DMA_CCR_DIR; /* Read from memory */
+    DMA1_Channel1->CNDTR = 12;
+    DMA1_Channel1->CPAR = (uint32_t)&(GPIOE->ODR);
+    DMA1_Channel1->CMAR = (uint32_t)&my_dma_buffer;
+    DMA1_Channel1->CCR |= DMA_CCR_EN;
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
-  GPIOB->ODR &= ~(1U << 3);
+  //GPIOB->ODR &= ~(1U << 3);
+  my_dma_buffer[2] = 1<<12;
+  my_dma_buffer[3] = 1<<12;
+  my_dma_buffer[4] = 1<<12;
+  my_dma_buffer[5] = 1<<12;
+  my_dma_buffer[6] = 1<<12;
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
 /*..........................................................................*/
 void BSP_ledOff(uint_fast8_t n) {
-  GPIOB->ODR |= (1U << 3);
+  my_dma_buffer[2] = 0<<12;
+  my_dma_buffer[3] = 0<<12;
+  my_dma_buffer[4] = 0<<12;
+  my_dma_buffer[5] = 0<<12;
+  my_dma_buffer[6] = 0<<12;
+  //GPIOB->ODR |= (1U << 3);
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0xFFU;
 }
 
