@@ -32,8 +32,11 @@
 * Email: info@state-machine.com
 *****************************************************************************/
 #include "qpc.h"
-#include "blinky.h"
 #include "bsp.h"
+#include "application.h"
+
+#include "blinky.h"
+#include "uart.h"
 
 /*..........................................................................*/
 int main() {

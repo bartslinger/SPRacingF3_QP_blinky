@@ -33,7 +33,7 @@
 *****************************************************************************/
 #include "qpc.h"
 #include "application.h"
-#include "blinky.h"
+#include "uart.h"
 #include "bsp.h"
 
 //Q_DEFINE_THIS_FILE
@@ -42,35 +42,30 @@
 typedef struct {     /* the Blinky active object */
     QActive super;   /* inherit QActive */
 
-    QTimeEvt timeEvt; /* private time event generator */
-} Blinky;
+    //QTimeEvt timeEvt; /* private time event generator */
+} Uart;
 
-static Blinky l_blinky; /* the Blinky active object */
+static Uart l_uart1; /* the Blinky active object */
 
-QActive * const AO_Blinky = &l_blinky.super;
+QActive * const A0_Uart1 = &l_uart1.super;
 
 /* hierarchical state machine ... */
-static QState Blinky_initial(Blinky * const me, QEvt const * const e);
-static QState Blinky_off    (Blinky * const me, QEvt const * const e);
-static QState Blinky_on     (Blinky * const me, QEvt const * const e);
+static QState Uart_initial(Uart * const me, QEvt const * const e);
+static QState Uart_standby(Uart * const me, QEvt const * const e);
 
 /*..........................................................................*/
-void Blinky_ctor(void) {
-    Blinky * const me = &l_blinky;
-    QActive_ctor(&me->super, Q_STATE_CAST(&Blinky_initial));
-    QTimeEvt_ctorX(&me->timeEvt, &me->super, TIMEOUT_SIG, 0U);
+void Uart1_ctor(void) {
+    Uart * const me = &l_uart1;
+    QActive_ctor(&me->super, Q_STATE_CAST(&Uart_initial));
 }
 
 /* HSM definition ----------------------------------------------------------*/
-QState Blinky_initial(Blinky * const me, QEvt const * const e) {
+QState Uart_initial(Uart * const me, QEvt const * const e) {
     (void)e; /* avoid compiler warning about unused parameter */
-
-    /* arm the time event to expire in half a second and every half second */
-    QTimeEvt_armX(&me->timeEvt, 2*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);
-    return Q_TRAN(&Blinky_off);
+    return Q_TRAN(&Uart_standby);
 }
 /*..........................................................................*/
-QState Blinky_off(Blinky * const me, QEvt const * const e) {
+QState Uart_standby(Uart * const me, QEvt const * const e) {
     QState status;
     switch (e->sig) {
         case Q_ENTRY_SIG: {
@@ -78,10 +73,6 @@ QState Blinky_off(Blinky * const me, QEvt const * const e) {
             status = Q_HANDLED();
             break;
         }
-        case TIMEOUT_SIG: {
-            status = Q_TRAN(&Blinky_on);
-            break;
-        }
         default: {
             status = Q_SUPER(&QHsm_top);
             break;
@@ -89,24 +80,3 @@ QState Blinky_off(Blinky * const me, QEvt const * const e) {
     }
     return status;
 }
-/*..........................................................................*/
-QState Blinky_on(Blinky * const me, QEvt const * const e) {
-    QState status;
-    switch (e->sig) {
-        case Q_ENTRY_SIG: {
-            BSP_ledOn(0U);
-            status = Q_HANDLED();
-            break;
-        }
-        case TIMEOUT_SIG: {
-            status = Q_TRAN(&Blinky_off);
-            break;
-        }
-        default: {
-            status = Q_SUPER(&QHsm_top);
-            break;
-        }
-    }
-    return status;
-}
-

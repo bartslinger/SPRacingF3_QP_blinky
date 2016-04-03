@@ -31,12 +31,11 @@
 * Web  : http://www.state-machine.com
 * Email: info@state-machine.com
 *****************************************************************************/
-#ifndef blinky_h
-#define blinky_h
+#ifndef uart_h
+#define uart_h
 
 
+void Uart_ctor(void);
+extern QActive * const AO_Uart1; /* opaque pointer */
 
-void Blinky_ctor(void);
-extern QActive * const AO_Blinky; /* opaque pointer */
-
-#endif /* blinky_h */
+#endif /* uart_h */

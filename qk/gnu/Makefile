@@ -90,6 +90,7 @@ ASM_SRCS :=
 # C source files
 C_SRCS := \
 	blinky.c \
+        uart.c \
 	bsp.c \
 	main.c \
 	system_stm32f3xx.c \
