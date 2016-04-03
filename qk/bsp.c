@@ -117,7 +117,7 @@ void BSP_init(void) {
     GPIOE->PUPDR = 0x00000000;
     GPIOE->ODR |= (1 << 12);
 
-    /* Try GPIO DMA */
+    /* GPIO DMA */
     RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     DMA1_Channel1->CCR |= DMA_CCR_MEM2MEM;
     DMA1_Channel1->CCR |= DMA_CCR_MSIZE_0; /* Half word memory size */
@@ -129,6 +129,17 @@ void BSP_init(void) {
     DMA1_Channel1->CPAR = (uint32_t)&(GPIOE->ODR);
     DMA1_Channel1->CMAR = (uint32_t)&my_dma_buffer;
     DMA1_Channel1->CCR |= DMA_CCR_EN;
+
+    /* UART without DMA */
+    RCC->AHBENR |= RCC_AHBENR_GPIOAEN; /* Enable GPIO clock */
+    GPIOA->MODER |= (0x02 << 18) | (0x02 << 20);
+    GPIOA->AFR[1] |= (7U << 4) | (7U << 8); /* USART1 AF selection */
+    RCC->APB2ENR |= RCC_APB2ENR_USART1EN; /* Enable USART clock */
+    USART1->BRR = SystemCoreClock / 9600; /* Set Baudrate */
+    USART1->CR1 |= USART_CR1_TE;          /* Enable transmit */
+    USART1->CR1 |= USART_CR1_UE;          /* Enable USART */
+
+
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
@@ -138,6 +149,9 @@ void BSP_ledOn(uint_fast8_t n) {
   my_dma_buffer[4] = 1<<12;
   my_dma_buffer[5] = 1<<12;
   my_dma_buffer[6] = 1<<12;
+  /* Send USART character */
+  USART1->TDR = 65;
+
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
 /*..........................................................................*/
