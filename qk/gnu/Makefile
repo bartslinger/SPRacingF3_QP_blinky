@@ -195,7 +195,7 @@ BIN_DIR := rel
 ASFLAGS = $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
 CFLAGS = $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
-	-ffunction-sections -fdata-sections \
+        -ffunction-sections -fdata-sections \
 	-O1 $(INCLUDES) $(DEFINES) -DNDEBUG
 
 CPPFLAGS = $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
@@ -225,7 +225,7 @@ BIN_DIR := dbg
 ASFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(ASM_CPU) $(ASM_FPU)
 
 CFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \
-	-ffunction-sections -fdata-sections \
+        -ffunction-sections -fdata-sections -std=c99 \
 	-O $(INCLUDES) $(DEFINES)
 
 CPPFLAGS = -g $(ARM_CPU) $(ARM_FPU) $(FLOAT_ABI) -mthumb -Wall \

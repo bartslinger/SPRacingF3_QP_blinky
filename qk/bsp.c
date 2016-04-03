@@ -68,6 +68,7 @@ void SysTick_Handler(void);
 
 /* Local-scope objects -----------------------------------------------------*/
 uint16_t my_dma_buffer[] = {1<<12,0,0,0,0,0,1<<12,1<<11,1<<11,1<<11,1<<11,1<<11};
+char_t uart_send_buffer[] = "Hello World! ";
 
 /* ISRs used in this project ===============================================*/
 void SysTick_Handler(void) {
@@ -150,7 +151,10 @@ void BSP_ledOn(uint_fast8_t n) {
   my_dma_buffer[5] = 1<<12;
   my_dma_buffer[6] = 1<<12;
   /* Send USART character */
-  USART1->TDR = 65;
+  for (int i = 0; i < sizeof(uart_send_buffer); i++) {
+    while (!(USART1->ISR & USART_ISR_TXE)) {}
+    USART1->TDR = uart_send_buffer[i];
+  }
 
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
