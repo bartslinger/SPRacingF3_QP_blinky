@@ -131,7 +131,7 @@ void BSP_init(void) {
     DMA1_Channel1->CMAR = (uint32_t)&my_dma_buffer;
     DMA1_Channel1->CCR |= DMA_CCR_EN;
 
-    /* UART without DMA */
+    /* Configure UART without DMA */
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN; /* Enable GPIO clock */
     GPIOA->MODER |= (0x02 << 18) | (0x02 << 20);
     GPIOA->AFR[1] |= (7U << 4) | (7U << 8); /* USART1 AF selection */
@@ -140,7 +140,19 @@ void BSP_init(void) {
     USART1->CR1 |= USART_CR1_TE;          /* Enable transmit */
     USART1->CR1 |= USART_CR1_UE;          /* Enable USART */
 
+    /* Configure DMA to be used with USART TX */
+    DMA1_Channel4->CCR |= DMA_CCR_PL_0;   /* Medium priority */
+    DMA1_Channel4->CCR |= DMA_CCR_MINC;   /* Memory increment */
+    DMA1_Channel4->CCR |= DMA_CCR_DIR;    /* Read from memory */
+    DMA1_Channel4->CNDTR = sizeof(uart_send_buffer);
+    DMA1_Channel4->CPAR = (uint32_t)&USART1->TDR;
+    DMA1_Channel4->CMAR = (uint32_t)&uart_send_buffer;
+    /* TEST Circular DMA (should really spam the usart line) */
+    DMA1_Channel4->CCR |= DMA_CCR_CIRC;
 
+    /* Configure USART1 TX to use DMA */
+    USART1->CR3 |= USART_CR3_DMAT;        /* Use DMA for TX */
+    DMA1_Channel4->CCR |= DMA_CCR_EN;     /* Enable DMA */
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
@@ -151,10 +163,10 @@ void BSP_ledOn(uint_fast8_t n) {
   my_dma_buffer[5] = 1<<12;
   my_dma_buffer[6] = 1<<12;
   /* Send USART character */
-  for (int i = 0; i < sizeof(uart_send_buffer); i++) {
-    while (!(USART1->ISR & USART_ISR_TXE)) {}
-    USART1->TDR = uart_send_buffer[i];
-  }
+//  for (int i = 0; i < sizeof(uart_send_buffer); i++) {
+//    while (!(USART1->ISR & USART_ISR_TXE)) {}
+//    USART1->TDR = uart_send_buffer[i];
+//  }
 
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
