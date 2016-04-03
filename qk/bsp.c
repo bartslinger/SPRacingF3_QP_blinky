@@ -148,7 +148,7 @@ void BSP_init(void) {
     DMA1_Channel4->CPAR = (uint32_t)&USART1->TDR;
     DMA1_Channel4->CMAR = (uint32_t)&uart_send_buffer;
     /* TEST Circular DMA (should really spam the usart line) */
-    DMA1_Channel4->CCR |= DMA_CCR_CIRC;
+    //DMA1_Channel4->CCR |= DMA_CCR_CIRC;
 
     /* Configure USART1 TX to use DMA */
     USART1->CR3 |= USART_CR3_DMAT;        /* Use DMA for TX */
@@ -162,11 +162,17 @@ void BSP_ledOn(uint_fast8_t n) {
   my_dma_buffer[4] = 1<<12;
   my_dma_buffer[5] = 1<<12;
   my_dma_buffer[6] = 1<<12;
-  /* Send USART character */
+  /* Send USART string busy-wait */
 //  for (int i = 0; i < sizeof(uart_send_buffer); i++) {
 //    while (!(USART1->ISR & USART_ISR_TXE)) {}
 //    USART1->TDR = uart_send_buffer[i];
 //  }
+
+  /* Send USART string with DMA */
+  DMA1_Channel4->CCR &= ~DMA_CCR_EN; /* Disable DMA */
+  DMA1_Channel4->CNDTR = sizeof(uart_send_buffer); /* Reload counter */
+  DMA1_Channel4->CCR |= DMA_CCR_EN;  /* Re-enable DMA */
+
 
 //    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
