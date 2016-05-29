@@ -22,10 +22,10 @@
 
 enum ApplicationSignals {
     DUMMY_SIG = Q_USER_SIG,
+    SERIAL_DEBUG_MSG_SIG,
     MAX_PUB_SIG,          /* the last published signal */
 
     TIMEOUT_SIG,
-    SERIAL_DEBUG_MSG_SIG,
     MAX_SIG               /* the last signal */
 };
 

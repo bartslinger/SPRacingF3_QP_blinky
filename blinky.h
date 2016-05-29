@@ -21,7 +21,7 @@
 /*${AOs::Blinky_ctor} ......................................................*/
 void Blinky_ctor(void);
 
-extern QActive * const AO_Blinky;
+extern QMActive * const AO_Blinky;
 
 
 

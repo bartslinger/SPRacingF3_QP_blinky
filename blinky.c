@@ -25,7 +25,7 @@ Q_DEFINE_THIS_FILE
 /*${AOs::Blinky} ...........................................................*/
 typedef struct {
 /* protected: */
-    QActive super;
+    QMActive super;
 
 /* private: */
     QTimeEvt timeEvt;
@@ -33,70 +33,118 @@ typedef struct {
 
 /* protected: */
 static QState Blinky_initial(Blinky * const me, QEvt const * const e);
-static QState Blinky_on(Blinky * const me, QEvt const * const e);
-static QState Blinky_off(Blinky * const me, QEvt const * const e);
+static QState Blinky_on  (Blinky * const me, QEvt const * const e);
+static QState Blinky_on_e(Blinky * const me);
+static QMState const Blinky_on_s = {
+    (QMState const *)0, /* superstate (top) */
+    Q_STATE_CAST(&Blinky_on),
+    Q_ACTION_CAST(&Blinky_on_e),
+    Q_ACTION_CAST(0), /* no exit action */
+    Q_ACTION_CAST(0)  /* no intitial tran. */
+};
+static QState Blinky_off  (Blinky * const me, QEvt const * const e);
+static QState Blinky_off_e(Blinky * const me);
+static QMState const Blinky_off_s = {
+    (QMState const *)0, /* superstate (top) */
+    Q_STATE_CAST(&Blinky_off),
+    Q_ACTION_CAST(&Blinky_off_e),
+    Q_ACTION_CAST(0), /* no exit action */
+    Q_ACTION_CAST(0)  /* no intitial tran. */
+};
 
 
 /* Local objects */
 static Blinky l_blinky;
 
 /* Global objects */
-QActive * const AO_Blinky = &l_blinky.super;
+QMActive * const AO_Blinky = &l_blinky.super;
 
 /* Blinky definition */
 /*${AOs::Blinky_ctor} ......................................................*/
 void Blinky_ctor(void) {
     Blinky * const me = &l_blinky;
-    QActive_ctor(&me->super, Q_STATE_CAST(&Blinky_initial));
+    QMActive_ctor(&me->super, Q_STATE_CAST(&Blinky_initial));
     QTimeEvt_ctorX(&me->timeEvt, &me->super, TIMEOUT_SIG, 0U);
 }
 /*${AOs::Blinky} ...........................................................*/
 /*${AOs::Blinky::SM} .......................................................*/
 static QState Blinky_initial(Blinky * const me, QEvt const * const e) {
+    static struct {
+        QMState const *target;
+        QActionHandler act[2];
+    } const tatbl_ = { /* transition-action table */
+        &Blinky_on_s, /* target state */
+        {
+            Q_ACTION_CAST(&Blinky_on_e), /* entry */
+            Q_ACTION_CAST(0) /* zero terminator */
+        }
+    };
     /* ${AOs::Blinky::SM::initial} */
     /* arm the time event to expire in half a second and every half second */
     QTimeEvt_armX(&me->timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);
-    return Q_TRAN(&Blinky_on);
+    return QM_TRAN_INIT(&tatbl_);
 }
 /*${AOs::Blinky::SM::on} ...................................................*/
+/* ${AOs::Blinky::SM::on} */
+static QState Blinky_on_e(Blinky * const me) {
+    BSP_ledOn(0U);
+    (void)me; /* avoid compiler warning in case 'me' is not used */
+    return QM_ENTRY(&Blinky_on_s);
+}
+/* ${AOs::Blinky::SM::on} */
 static QState Blinky_on(Blinky * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
-        /* ${AOs::Blinky::SM::on} */
-        case Q_ENTRY_SIG: {
-            BSP_ledOn(0U);
-            status_ = Q_HANDLED();
-            break;
-        }
         /* ${AOs::Blinky::SM::on::TIMEOUT} */
         case TIMEOUT_SIG: {
-            status_ = Q_TRAN(&Blinky_off);
+            static struct {
+                QMState const *target;
+                QActionHandler act[2];
+            } const tatbl_ = { /* transition-action table */
+                &Blinky_off_s, /* target state */
+                {
+                    Q_ACTION_CAST(&Blinky_off_e), /* entry */
+                    Q_ACTION_CAST(0) /* zero terminator */
+                }
+            };
+            status_ = QM_TRAN(&tatbl_);
             break;
         }
         default: {
-            status_ = Q_SUPER(&QHsm_top);
+            status_ = QM_SUPER();
             break;
         }
     }
     return status_;
 }
 /*${AOs::Blinky::SM::off} ..................................................*/
+/* ${AOs::Blinky::SM::off} */
+static QState Blinky_off_e(Blinky * const me) {
+    BSP_ledOff(0U);
+    (void)me; /* avoid compiler warning in case 'me' is not used */
+    return QM_ENTRY(&Blinky_off_s);
+}
+/* ${AOs::Blinky::SM::off} */
 static QState Blinky_off(Blinky * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
-        /* ${AOs::Blinky::SM::off} */
-        case Q_ENTRY_SIG: {
-            BSP_ledOff(0U);
-            status_ = Q_HANDLED();
-            break;
-        }
         /* ${AOs::Blinky::SM::off::TIMEOUT} */
         case TIMEOUT_SIG: {
-            status_ = Q_TRAN(&Blinky_on);
+            static struct {
+                QMState const *target;
+                QActionHandler act[2];
+            } const tatbl_ = { /* transition-action table */
+                &Blinky_on_s, /* target state */
+                {
+                    Q_ACTION_CAST(&Blinky_on_e), /* entry */
+                    Q_ACTION_CAST(0) /* zero terminator */
+                }
+            };
+            status_ = QM_TRAN(&tatbl_);
             break;
         }
         default: {
-            status_ = Q_SUPER(&QHsm_top);
+            status_ = QM_SUPER();
             break;
         }
     }

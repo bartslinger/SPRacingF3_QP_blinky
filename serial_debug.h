@@ -21,7 +21,7 @@
 /*${AOs::SerialDebug_ctor} .................................................*/
 void SerialDebug_ctor(void);
 
-extern QActive * const AO_SerialDebug;
+extern QMActive * const AO_SerialDebug;
 
 
 
