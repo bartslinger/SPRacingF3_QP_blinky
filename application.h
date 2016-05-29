@@ -34,8 +34,9 @@ typedef struct {
 /* protected: */
     QEvt super;
 
-/* public: */
-    uint8_t data[100];
+/* private: */
+    uint8_t buffer[100];
+    uint8_t length;
 } SerialDebugMsgEvt;
 
 

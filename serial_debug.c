@@ -50,11 +50,6 @@ void SerialDebug_ctor(void) {
 static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e) {
     /* ${AOs::SerialDebug::SM::initial} */
     QActive_subscribe(&me->super, SERIAL_DEBUG_MSG_SIG);
-
-    //SerialDebugMsgEvt *pe;
-    //pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
-    //pe->data[0] = 0xAB;
-    //QF_PUBLISH(&pe->super, me);
     return Q_TRAN(&SerialDebug_standby);
 }
 /*${AOs::SerialDebug::SM::standby} .........................................*/
@@ -63,7 +58,8 @@ static QState SerialDebug_standby(SerialDebug * const me, QEvt const * const e) 
     switch (e->sig) {
         /* ${AOs::SerialDebug::SM::standby::SERIAL_DEBUG_MSG} */
         case SERIAL_DEBUG_MSG_SIG: {
-            status_ = Q_TRAN(&SerialDebug_standby);
+            BSP_sendString(Q_EVT_CAST(SerialDebugMsgEvt)->buffer, Q_EVT_CAST(SerialDebugMsgEvt)->length);
+            status_ = Q_HANDLED();
             break;
         }
         default: {

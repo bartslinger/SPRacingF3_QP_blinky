@@ -4,7 +4,8 @@
  <framework name="qpc"/>
  <package name="Events" stereotype="0x01">
   <class name="SerialDebugMsgEvt" superclass="qpc::QEvt">
-   <attribute name="data[100]" type="uint8_t" visibility="0x00" properties="0x00"/>
+   <attribute name="buffer[100]" type="uint8_t" visibility="0x02" properties="0x00"/>
+   <attribute name="length" type="uint8_t" visibility="0x02" properties="0x00"/>
   </class>
  </package>
  <package name="AOs" stereotype="0x02">
@@ -31,7 +32,14 @@ QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</
      </state_glyph>
     </state>
     <state name="off">
-     <entry>BSP_ledOff(0U);</entry>
+     <entry>BSP_ledOff(0U);
+
+SerialDebugMsgEvt *pe;
+pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
+const char str[] = &quot;Test\n&quot;;
+sprintf((char*)pe-&gt;buffer, &quot;%s&quot;, str);
+pe-&gt;length = sizeof(str)-1;
+QF_PUBLISH(&amp;pe-&gt;super, me);</entry>
      <tran trig="TIMEOUT" target="../../1">
       <tran_glyph conn="22,35,3,1,26,-18,-4">
        <action box="0,-2,10,2"/>
@@ -47,19 +55,15 @@ QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</
   <class name="SerialDebug" superclass="qpc::QActive">
    <statechart>
     <initial target="../1">
-     <action>QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);
-
-//SerialDebugMsgEvt *pe;
-//pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
-//pe-&gt;data[0] = 0xAB;
-//QF_PUBLISH(&amp;pe-&gt;super, me);</action>
+     <action>QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);</action>
      <initial_glyph conn="5,12,4,3,9,16">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
     <state name="standby">
-     <tran trig="SERIAL_DEBUG_MSG" target="..">
-      <tran_glyph conn="21,30,3,1,39,-5,-2">
+     <tran trig="SERIAL_DEBUG_MSG">
+      <action>BSP_sendString(Q_EVT_CAST(SerialDebugMsgEvt)-&gt;buffer, Q_EVT_CAST(SerialDebugMsgEvt)-&gt;length);</action>
+      <tran_glyph conn="21,30,3,-1,24">
        <action box="0,-2,16,3"/>
       </tran_glyph>
      </tran>

@@ -152,7 +152,7 @@ void BSP_init(void) {
 
     /* Configure USART1 TX to use DMA */
     USART1->CR3 |= USART_CR3_DMAT;        /* Use DMA for TX */
-    DMA1_Channel4->CCR |= DMA_CCR_EN;     /* Enable DMA */
+    //DMA1_Channel4->CCR |= DMA_CCR_EN;     /* Enable DMA */
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
@@ -163,16 +163,23 @@ void BSP_ledOn(uint_fast8_t n) {
 //    while (!(USART1->ISR & USART_ISR_TXE)) {}
 //    USART1->TDR = uart_send_buffer[i];
 //  }
-
-  /* Send USART string with DMA */
-  DMA1_Channel4->CCR &= ~DMA_CCR_EN; /* Disable DMA */
-  DMA1_Channel4->CNDTR = sizeof(uart_send_buffer)-1; /* Reload counter */
-  DMA1_Channel4->CCR |= DMA_CCR_EN;  /* Re-enable DMA */
-
 }
 /*..........................................................................*/
 void BSP_ledOff(uint_fast8_t n) {
   GPIOB->ODR |= (1U << 3);
+}
+
+void BSP_sendString(const uint8_t* buf, uint8_t len) {
+  /* Copy data from event to buffer */
+  for(uint8_t i = 0; i < len; i++) {
+    uart_send_buffer[i] = buf[i];
+  }
+
+  /* Send USART string with DMA */
+  DMA1_Channel4->CCR &= ~DMA_CCR_EN; /* Disable DMA */
+  DMA1_Channel4->CNDTR = len; /* Reload counter */
+  DMA1_Channel4->CCR |= DMA_CCR_EN;  /* Re-enable DMA */
+
 }
 
 

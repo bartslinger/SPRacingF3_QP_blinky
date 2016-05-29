@@ -87,6 +87,13 @@ static QState Blinky_off(Blinky * const me, QEvt const * const e) {
         /* ${AOs::Blinky::SM::off} */
         case Q_ENTRY_SIG: {
             BSP_ledOff(0U);
+
+            SerialDebugMsgEvt *pe;
+            pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
+            const char str[] = "Test\n";
+            sprintf((char*)pe->buffer, "%s", str);
+            pe->length = sizeof(str)-1;
+            QF_PUBLISH(&pe->super, me);
             status_ = Q_HANDLED();
             break;
         }
