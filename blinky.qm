@@ -3,32 +3,158 @@
  <documentation>Simple model template for QP/C</documentation>
  <framework name="qpc"/>
  <package name="Events" stereotype="0x01">
-  <class name="MyEvt" superclass="qpc::QEvt"/>
+  <class name="SerialDebugMsgEvt" superclass="qpc::QEvt">
+   <attribute name="data[100]" type="uint8_t" visibility="0x00" properties="0x00"/>
+  </class>
  </package>
  <package name="AOs" stereotype="0x02">
-  <class name="MyAO" superclass="qpc::QMActive">
+  <class name="Blinky" superclass="qpc::QActive">
    <documentation>Test active object</documentation>
+   <attribute name="timeEvt" type="QTimeEvt" visibility="0x02" properties="0x00"/>
    <statechart>
     <initial target="../1">
-     <initial_glyph conn="14,8,5,3,9,0,2">
+     <action>/* arm the time event to expire in half a second and every half second */
+QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</action>
+     <initial_glyph conn="7,4,4,3,12,15">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
-    <state name="state1">
-     <state_glyph node="25,4,30,7"/>
+    <state name="on">
+     <entry>BSP_ledOn(0U);</entry>
+     <tran trig="TIMEOUT" target="../../2">
+      <tran_glyph conn="22,19,3,1,24,13,-2">
+       <action box="0,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="22,13,22,9">
+      <entry box="1,2,6,2"/>
+     </state_glyph>
+    </state>
+    <state name="off">
+     <entry>BSP_ledOff(0U);</entry>
+     <tran trig="TIMEOUT" target="../../1">
+      <tran_glyph conn="22,35,3,1,26,-18,-4">
+       <action box="0,-2,10,2"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="22,28,22,10">
+      <entry box="1,2,6,2"/>
+     </state_glyph>
     </state>
     <state_diagram size="80,50"/>
    </statechart>
   </class>
+  <class name="SerialDebug" superclass="qpc::QActive">
+   <statechart>
+    <initial target="../1">
+     <initial_glyph conn="5,12,4,3,9,16">
+      <action box="0,-2,10,2"/>
+     </initial_glyph>
+    </initial>
+    <state name="standby">
+     <tran trig="SERIAL_DEBUG_MSG">
+      <tran_glyph conn="21,30,3,-1,20">
+       <action box="0,-2,16,3"/>
+      </tran_glyph>
+     </tran>
+     <state_glyph node="21,18,37,17"/>
+    </state>
+    <state_diagram size="80,50"/>
+   </statechart>
+  </class>
+  <attribute name="AO_Blinky" type="QActive * const" visibility="0x00" properties="0x00"/>
+  <attribute name="AO_SerialDebug" type="QActive * const" visibility="0x00" properties="0x00"/>
+  <operation name="Blinky_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>Blinky * const me = &amp;l_blinky;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Blinky_initial));
+QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
+  </operation>
+  <operation name="SerialDebug_ctor" type="void" visibility="0x00" properties="0x00">
+   <code>SerialDebug * const me = &amp;l_serial_debug;
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;SerialDebug_initial));</code>
+  </operation>
  </package>
  <directory name=".">
-  <file name="project.h">
-   <text>#include &quot;qp_port.h&quot;
+  <file name="blinky.h">
+   <text>#ifndef blinky_h
+#define blinky_h
 
-$define(AOs::MyAO)
+$declare(AOs::Blinky_ctor)
+$declare(AOs::AO_Blinky)
 
-/* define some other functions */</text>
+
+#endif /* blinky_h */
+</text>
   </file>
-  <file name="myao.c"/>
+  <file name="blinky.c">
+   <text>#include &quot;qpc.h&quot;
+#include &quot;application.h&quot;
+#include &quot;blinky.h&quot;
+#include &quot;bsp.h&quot;
+
+Q_DEFINE_THIS_FILE
+
+$declare(AOs::Blinky)
+
+/* Local objects */
+static Blinky l_blinky;
+
+/* Global objects */
+QActive * const AO_Blinky = &amp;l_blinky.super;
+
+/* Blinky definition */
+$define(AOs::Blinky_ctor)
+$define(AOs::Blinky)</text>
+  </file>
+  <file name="serial_debug.h">
+   <text>#ifndef serial_debug_h
+#define serial_debug_h
+
+$declare(AOs::SerialDebug_ctor)
+$declare(AOs::AO_SerialDebug)
+
+
+#endif /* serial_debug_h */
+</text>
+  </file>
+  <file name="serial_debug.c">
+   <text>#include &quot;qpc.h&quot;
+#include &quot;application.h&quot;
+#include &quot;blinky.h&quot;
+#include &quot;bsp.h&quot;
+
+Q_DEFINE_THIS_FILE
+
+$declare(AOs::SerialDebug)
+
+/* Local objects */
+static SerialDebug l_serial_debug;
+
+/* Global objects */
+QMActive * const AO_SerialDebug = &amp;l_serial_debug.super;
+
+/* Blinky definition */
+$define(AOs::SerialDebug_ctor)
+$define(AOs::SerialDebug)</text>
+  </file>
+  <file name="application.h">
+   <text>#ifndef application_h
+#define application_h
+
+#include &quot;qpc.h&quot;
+
+enum ApplicationSignals {
+    DUMMY_SIG = Q_USER_SIG,
+    MAX_PUB_SIG,          /* the last published signal */
+
+    TIMEOUT_SIG,
+    SERIAL_DEBUG_MSG_SIG,
+    MAX_SIG               /* the last signal */
+};
+
+$declare(Events::SerialDebugMsgEvt)
+
+#endif /* application_h */</text>
+  </file>
  </directory>
 </model>

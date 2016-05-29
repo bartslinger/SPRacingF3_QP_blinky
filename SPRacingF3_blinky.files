@@ -76,3 +76,5 @@ qk/gnu/blinky-qk.ld
 uart.c
 uart.h
 application.h
+serial_debug.h
+serial_debug.c

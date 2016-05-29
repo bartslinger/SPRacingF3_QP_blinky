@@ -36,25 +36,30 @@
 #include "application.h"
 
 #include "blinky.h"
-#include "uart.h"
+#include "serial_debug.h"
 
 /*..........................................................................*/
 int main() {
     static QEvt const *l_blinkyQSto[10];   /* Event queue storage for Blinky */
-    static QEvt const *l_uart1QueueSto[1]; /* Event queue size one for UART1 */
+    static QEvt const *l_serial_debug_queue_sto[1]; /* Event queue size one for UART1 */
+    static QSubscrList subscrSto[MAX_PUB_SIG];
+    static QF_MPOOL_EL(SerialDebugMsgEvt) smlPoolSto[2]; /* small pool */
 
     QF_init();  /* initialize the framework and the underlying RT kernel */
     BSP_init(); /* initialize the Board Support Package */
 
-    /* publish-subscribe not used, no call to QF_psInit() */
-    /* dynamic event allocation not used, no call to QF_poolInit() */
+    /* initialize publish-subscribe... */
+    QF_psInit(subscrSto, Q_DIM(subscrSto));
+
+    /* initialize event pools... */
+    QF_poolInit(smlPoolSto, sizeof(smlPoolSto), sizeof(smlPoolSto[0]));
 
     /* instantiate and start the active objects... */
-    Uart_ctor();
-    QACTIVE_START(AO_Uart1,
+    SerialDebug_ctor();
+    QACTIVE_START(AO_SerialDebug,
                   2U,
-                  l_uart1QueueSto,
-                  Q_DIM(l_uart1QueueSto),
+                  l_serial_debug_queue_sto,
+                  Q_DIM(l_serial_debug_queue_sto),
                   (void *)0,      /* stack storage (not used in QK) */
                   0U,             /* stack size [bytes] (not used in QK) */
                   (QEvt *)0);     /* initial event (or 0) */
