@@ -43,7 +43,7 @@ int main() {
     static QEvt const *l_blinkyQSto[10];   /* Event queue storage for Blinky */
     static QEvt const *l_serial_debug_queue_sto[1]; /* Event queue size one for UART1 */
     static QSubscrList subscrSto[MAX_PUB_SIG];
-    static QF_MPOOL_EL(SerialDebugMsgEvt) smlPoolSto[2]; /* small pool */
+    static QF_MPOOL_EL(SerialDebugMsgEvt) smlPoolSto[1]; /* small pool */
 
     QF_init();  /* initialize the framework and the underlying RT kernel */
     BSP_init(); /* initialize the Board Support Package */
