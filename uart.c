@@ -47,14 +47,14 @@ typedef struct {     /* the Blinky active object */
 
 static Uart l_uart1; /* the Blinky active object */
 
-QActive * const A0_Uart1 = &l_uart1.super;
+QActive * const AO_Uart1 = &l_uart1.super;
 
 /* hierarchical state machine ... */
 static QState Uart_initial(Uart * const me, QEvt const * const e);
 static QState Uart_standby(Uart * const me, QEvt const * const e);
 
 /*..........................................................................*/
-void Uart1_ctor(void) {
+void Uart_ctor(void) {
     Uart * const me = &l_uart1;
     QActive_ctor(&me->super, Q_STATE_CAST(&Uart_initial));
 }

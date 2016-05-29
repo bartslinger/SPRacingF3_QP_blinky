@@ -67,8 +67,8 @@ Q_ASSERT_COMPILE(MAX_KERNEL_AWARE_CMSIS_PRI <= (0xFF >>(8-__NVIC_PRIO_BITS)));
 void SysTick_Handler(void);
 
 /* Local-scope objects -----------------------------------------------------*/
-uint16_t my_dma_buffer[] = {1<<12,0,0,0,0,0,1<<12,1<<11,1<<11,1<<11,1<<11,1<<11};
-char_t uart_send_buffer[] = "Hello World! ";
+uint16_t my_dma_buffer[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+char_t uart_send_buffer[] = "Hello World!\n";
 
 /* ISRs used in this project ===============================================*/
 void SysTick_Handler(void) {
@@ -111,29 +111,29 @@ void BSP_init(void) {
 #endif
 
     /* enable clock for to the peripherals used by this application... */
-    RCC->AHBENR |= RCC_AHBENR_GPIOEEN;
-    GPIOE->MODER = (GPIO_MODER_MODER11_0) | (GPIO_MODER_MODER12_0);
-    GPIOE->OTYPER = 0x00000000;
-    GPIOE->OSPEEDR = 0x00000000;
-    GPIOE->PUPDR = 0x00000000;
-    GPIOE->ODR |= (1 << 12);
+    RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+    GPIOB->MODER = (GPIO_MODER_MODER3_0);
+    GPIOB->OTYPER = 0x00000000;
+    GPIOB->OSPEEDR = 0x00000000;
+    GPIOB->PUPDR = 0x00000000;
+    GPIOB->ODR |= (1 << 3);
 
     /* GPIO DMA */
-    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
-    DMA1_Channel1->CCR |= DMA_CCR_MEM2MEM;
-    DMA1_Channel1->CCR |= DMA_CCR_MSIZE_0; /* Half word memory size */
-    DMA1_Channel1->CCR |= DMA_CCR_PSIZE_0; /* Half word periph size */
-    DMA1_Channel1->CCR |= DMA_CCR_MINC; /* Only memory increment mode */
-    DMA1_Channel1->CCR |= DMA_CCR_CIRC; /* Circular mode */
-    DMA1_Channel1->CCR |= DMA_CCR_DIR; /* Read from memory */
-    DMA1_Channel1->CNDTR = 12;
-    DMA1_Channel1->CPAR = (uint32_t)&(GPIOE->ODR);
-    DMA1_Channel1->CMAR = (uint32_t)&my_dma_buffer;
-    DMA1_Channel1->CCR |= DMA_CCR_EN;
+    //DMA1_Channel1->CCR |= DMA_CCR_MEM2MEM;
+    //DMA1_Channel1->CCR |= DMA_CCR_MSIZE_0; /* Half word memory size */
+    //DMA1_Channel1->CCR |= DMA_CCR_PSIZE_0; /* Half word periph size */
+    //DMA1_Channel1->CCR |= DMA_CCR_MINC; /* Only memory increment mode */
+    //DMA1_Channel1->CCR |= DMA_CCR_CIRC; /* Circular mode */
+    //DMA1_Channel1->CCR |= DMA_CCR_DIR; /* Read from memory */
+    //DMA1_Channel1->CNDTR = 12;
+    //DMA1_Channel1->CPAR = (uint32_t)&(GPIOB->ODR);
+    //DMA1_Channel1->CMAR = (uint32_t)&my_dma_buffer;
+    //DMA1_Channel1->CCR |= DMA_CCR_EN;
 
     /* Configure UART without DMA */
+    RCC->AHBENR |= RCC_AHBENR_DMA1EN;
     RCC->AHBENR |= RCC_AHBENR_GPIOAEN; /* Enable GPIO clock */
-    GPIOA->MODER |= (0x02 << 18) | (0x02 << 20);
+    GPIOA->MODER |= (0x02 << 18) | (0x02 << 20); /* Pin PA9 and PA10 */
     GPIOA->AFR[1] |= (7U << 4) | (7U << 8); /* USART1 AF selection */
     RCC->APB2ENR |= RCC_APB2ENR_USART1EN; /* Enable USART clock */
     USART1->BRR = SystemCoreClock / 9600; /* Set Baudrate */
@@ -156,12 +156,8 @@ void BSP_init(void) {
 }
 /*..........................................................................*/
 void BSP_ledOn(uint_fast8_t n) {
-  //GPIOB->ODR &= ~(1U << 3);
-  my_dma_buffer[2] = 1<<12;
-  my_dma_buffer[3] = 1<<12;
-  my_dma_buffer[4] = 1<<12;
-  my_dma_buffer[5] = 1<<12;
-  my_dma_buffer[6] = 1<<12;
+  GPIOB->ODR &= ~(1U << 3);
+
   /* Send USART string busy-wait */
 //  for (int i = 0; i < sizeof(uart_send_buffer); i++) {
 //    while (!(USART1->ISR & USART_ISR_TXE)) {}
@@ -170,21 +166,13 @@ void BSP_ledOn(uint_fast8_t n) {
 
   /* Send USART string with DMA */
   DMA1_Channel4->CCR &= ~DMA_CCR_EN; /* Disable DMA */
-  DMA1_Channel4->CNDTR = sizeof(uart_send_buffer); /* Reload counter */
+  DMA1_Channel4->CNDTR = sizeof(uart_send_buffer)-1; /* Reload counter */
   DMA1_Channel4->CCR |= DMA_CCR_EN;  /* Re-enable DMA */
 
-
-//    GPIOF->DATA_Bits[l_led_pin[n]] = 0U;
 }
 /*..........................................................................*/
 void BSP_ledOff(uint_fast8_t n) {
-  my_dma_buffer[2] = 0<<12;
-  my_dma_buffer[3] = 0<<12;
-  my_dma_buffer[4] = 0<<12;
-  my_dma_buffer[5] = 0<<12;
-  my_dma_buffer[6] = 0<<12;
-  //GPIOB->ODR |= (1U << 3);
-//    GPIOF->DATA_Bits[l_led_pin[n]] = 0xFFU;
+  GPIOB->ODR |= (1U << 3);
 }
 
 
