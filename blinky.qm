@@ -47,13 +47,19 @@ QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</
   <class name="SerialDebug" superclass="qpc::QActive">
    <statechart>
     <initial target="../1">
+     <action>//QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);
+
+SerialDebugMsgEvt *pe;
+pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
+pe-&gt;data[0] = 0xAB;
+//QF_PUBLISH(&amp;pe-&gt;super, me);</action>
      <initial_glyph conn="5,12,4,3,9,16">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
     <state name="standby">
-     <tran trig="SERIAL_DEBUG_MSG">
-      <tran_glyph conn="21,30,3,-1,20">
+     <tran trig="SERIAL_DEBUG_MSG" target="..">
+      <tran_glyph conn="21,30,3,1,39,-5,-2">
        <action box="0,-2,16,3"/>
       </tran_glyph>
      </tran>

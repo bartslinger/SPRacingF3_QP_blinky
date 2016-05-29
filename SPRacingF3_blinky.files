@@ -73,8 +73,6 @@ system_stm32f3xx.h
 ../../../../qp/qpc/source/qk_mutex.c
 ../../../../qp/qpc/source/qk_pkg.h
 qk/gnu/blinky-qk.ld
-uart.c
-uart.h
 application.h
 serial_debug.h
 serial_debug.c
