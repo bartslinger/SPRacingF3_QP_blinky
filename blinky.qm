@@ -8,7 +8,7 @@
   </class>
  </package>
  <package name="AOs" stereotype="0x02">
-  <class name="Blinky" superclass="qpc::QMActive">
+  <class name="Blinky" superclass="qpc::QActive">
    <documentation>Test active object</documentation>
    <attribute name="timeEvt" type="QTimeEvt" visibility="0x02" properties="0x00"/>
    <statechart>
@@ -44,7 +44,7 @@ QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</
     <state_diagram size="80,50"/>
    </statechart>
   </class>
-  <class name="SerialDebug" superclass="qpc::QMActive">
+  <class name="SerialDebug" superclass="qpc::QActive">
    <statechart>
     <initial target="../1">
      <action>QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);
@@ -68,16 +68,16 @@ QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</
     <state_diagram size="80,50"/>
    </statechart>
   </class>
-  <attribute name="AO_Blinky" type="QMActive * const" visibility="0x00" properties="0x00"/>
-  <attribute name="AO_SerialDebug" type="QMActive * const" visibility="0x00" properties="0x00"/>
+  <attribute name="AO_Blinky" type="QActive * const" visibility="0x00" properties="0x00"/>
+  <attribute name="AO_SerialDebug" type="QActive * const" visibility="0x00" properties="0x00"/>
   <operation name="Blinky_ctor" type="void" visibility="0x00" properties="0x00">
    <code>Blinky * const me = &amp;l_blinky;
-QMActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Blinky_initial));
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;Blinky_initial));
 QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
   </operation>
   <operation name="SerialDebug_ctor" type="void" visibility="0x00" properties="0x00">
    <code>SerialDebug * const me = &amp;l_serial_debug;
-QMActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;SerialDebug_initial));</code>
+QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;SerialDebug_initial));</code>
   </operation>
  </package>
  <directory name=".">
@@ -106,7 +106,7 @@ $declare(AOs::Blinky)
 static Blinky l_blinky;
 
 /* Global objects */
-QMActive * const AO_Blinky = &amp;l_blinky.super;
+QActive * const AO_Blinky = &amp;l_blinky.super;
 
 /* Blinky definition */
 $define(AOs::Blinky_ctor)
@@ -137,7 +137,7 @@ $declare(AOs::SerialDebug)
 static SerialDebug l_serial_debug;
 
 /* Global objects */
-QMActive * const AO_SerialDebug = &amp;l_serial_debug.super;
+QActive * const AO_SerialDebug = &amp;l_serial_debug.super;
 
 /* Blinky definition */
 $define(AOs::SerialDebug_ctor)

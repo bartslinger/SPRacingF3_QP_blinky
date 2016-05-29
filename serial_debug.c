@@ -25,42 +25,29 @@ Q_DEFINE_THIS_FILE
 /*${AOs::SerialDebug} ......................................................*/
 typedef struct {
 /* protected: */
-    QMActive super;
+    QActive super;
 } SerialDebug;
 
 /* protected: */
 static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e);
-static QState SerialDebug_standby  (SerialDebug * const me, QEvt const * const e);
-static QMState const SerialDebug_standby_s = {
-    (QMState const *)0, /* superstate (top) */
-    Q_STATE_CAST(&SerialDebug_standby),
-    Q_ACTION_CAST(0), /* no entry action */
-    Q_ACTION_CAST(0), /* no exit action */
-    Q_ACTION_CAST(0)  /* no intitial tran. */
-};
+static QState SerialDebug_standby(SerialDebug * const me, QEvt const * const e);
 
 
 /* Local objects */
 static SerialDebug l_serial_debug;
 
 /* Global objects */
-QMActive * const AO_SerialDebug = &l_serial_debug.super;
+QActive * const AO_SerialDebug = &l_serial_debug.super;
 
 /* Blinky definition */
 /*${AOs::SerialDebug_ctor} .................................................*/
 void SerialDebug_ctor(void) {
     SerialDebug * const me = &l_serial_debug;
-    QMActive_ctor(&me->super, Q_STATE_CAST(&SerialDebug_initial));
+    QActive_ctor(&me->super, Q_STATE_CAST(&SerialDebug_initial));
 }
 /*${AOs::SerialDebug} ......................................................*/
 /*${AOs::SerialDebug::SM} ..................................................*/
 static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e) {
-    static QMTranActTable const tatbl_ = { /* transition-action table */
-        &SerialDebug_standby_s,
-        {
-            Q_ACTION_CAST(0) /* zero terminator */
-        }
-    };
     /* ${AOs::SerialDebug::SM::initial} */
     QActive_subscribe(&me->super, SERIAL_DEBUG_MSG_SIG);
 
@@ -68,26 +55,19 @@ static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e) 
     //pe = Q_NEW(SerialDebugMsgEvt, SERIAL_DEBUG_MSG_SIG);
     //pe->data[0] = 0xAB;
     //QF_PUBLISH(&pe->super, me);
-    return QM_TRAN_INIT(&tatbl_);
+    return Q_TRAN(&SerialDebug_standby);
 }
 /*${AOs::SerialDebug::SM::standby} .........................................*/
-/* ${AOs::SerialDebug::SM::standby} */
 static QState SerialDebug_standby(SerialDebug * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
         /* ${AOs::SerialDebug::SM::standby::SERIAL_DEBUG_MSG} */
         case SERIAL_DEBUG_MSG_SIG: {
-            static QMTranActTable const tatbl_ = { /* transition-action table */
-                &SerialDebug_standby_s,
-                {
-                    Q_ACTION_CAST(0) /* zero terminator */
-                }
-            };
-            status_ = QM_TRAN(&tatbl_);
+            status_ = Q_TRAN(&SerialDebug_standby);
             break;
         }
         default: {
-            status_ = QM_SUPER();
+            status_ = Q_SUPER(&QHsm_top);
             break;
         }
     }
