@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <session version="3.3.0">
- <item name="license"></item>
+ <item name="license">GPL</item>
  <group name="locked"/>
  <group name="settings">
   <item name="tabs">1</item>
-  <item name="windows">0</item>
+  <item name="windows">1</item>
   <item name="grid">2</item>
  </group>
  <group name="windows">
-  <item id="AOs::MyAO::SM">0,0,843,697,*</item>
+  <item id="AOs::Blinky::SM">270,2,455,393</item>
+  <item id=".::blinky.c">211,306,569,363</item>
+  <item id="AOs::SerialDebug::SM">21,406,409,284,*</item>
  </group>
  <group name="search">
   <item name="options">4129280</item>
@@ -17,9 +19,9 @@
  <group name="vars"/>
  <group name="tools">
   <group name="tool">
-   <item name="icon">0</item>
-   <item name="title"></item>
-   <item name="command"></item>
+   <item name="icon">3</item>
+   <item name="title">Build</item>
+   <item name="command">./qk/gnu/make</item>
    <item name="args"></item>
    <item name="initial"></item>
    <item name="options">0</item>
