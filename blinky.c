@@ -19,6 +19,7 @@
 #include "application.h"
 #include "blinky.h"
 #include "bsp.h"
+#include <stdio.h>
 
 Q_DEFINE_THIS_FILE
 

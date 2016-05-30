@@ -16,18 +16,18 @@
     <initial target="../1">
      <action>/* arm the time event to expire in half a second and every half second */
 QTimeEvt_armX(&amp;me-&gt;timeEvt, 1*BSP_TICKS_PER_SEC, BSP_TICKS_PER_SEC/4U);</action>
-     <initial_glyph conn="7,4,4,3,12,15">
+     <initial_glyph conn="3,4,4,3,6,12">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
     <state name="on">
      <entry>BSP_ledOn(0U);</entry>
      <tran trig="TIMEOUT" target="../../2">
-      <tran_glyph conn="22,19,3,1,24,13,-2">
+      <tran_glyph conn="15,13,3,1,24,13,-2">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="22,13,22,9">
+     <state_glyph node="15,7,22,9">
       <entry box="1,2,6,2"/>
      </state_glyph>
     </state>
@@ -41,35 +41,43 @@ sprintf((char*)pe-&gt;buffer, &quot;%s&quot;, str);
 pe-&gt;length = sizeof(str)-1;
 QF_PUBLISH(&amp;pe-&gt;super, me);</entry>
      <tran trig="TIMEOUT" target="../../1">
-      <tran_glyph conn="22,35,3,1,26,-18,-4">
+      <tran_glyph conn="15,29,3,1,26,-18,-4">
        <action box="0,-2,10,2"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="22,28,22,10">
+     <state_glyph node="15,22,22,10">
       <entry box="1,2,6,2"/>
      </state_glyph>
     </state>
-    <state_diagram size="80,50"/>
+    <state_diagram size="52,41"/>
    </statechart>
   </class>
   <class name="SerialDebug" superclass="qpc::QActive">
+   <attribute name="txbuf[256]" type="volatile uint8_t" visibility="0x01" properties="0x00">
+    <documentation>/* Circular buffer for DMA TX */</documentation>
+   </attribute>
+   <attribute name="txbuf_head" type="uint8_t" visibility="0x02" properties="0x00">
+    <documentation>/* Counter for the circular buffer */</documentation>
+   </attribute>
+   <attribute name="txbuf_tail" type="uint8_t" visibility="0x02" properties="0x00"/>
    <statechart>
     <initial target="../1">
-     <action>QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);</action>
-     <initial_glyph conn="5,12,4,3,9,16">
+     <action>BSP_InitializeUart1DMA(me-&gt;txbuf);
+QActive_subscribe(&amp;me-&gt;super, SERIAL_DEBUG_MSG_SIG);</action>
+     <initial_glyph conn="1,3,4,3,6,7">
       <action box="0,-2,10,2"/>
      </initial_glyph>
     </initial>
-    <state name="standby">
+    <state name="active">
      <tran trig="SERIAL_DEBUG_MSG">
       <action>BSP_sendString(Q_EVT_CAST(SerialDebugMsgEvt)-&gt;buffer, Q_EVT_CAST(SerialDebugMsgEvt)-&gt;length);</action>
-      <tran_glyph conn="21,30,3,-1,24">
+      <tran_glyph conn="8,14,3,-1,20">
        <action box="0,-2,16,3"/>
       </tran_glyph>
      </tran>
-     <state_glyph node="21,18,37,17"/>
+     <state_glyph node="8,6,30,12"/>
     </state>
-    <state_diagram size="80,50"/>
+    <state_diagram size="41,21"/>
    </statechart>
   </class>
   <attribute name="AO_Blinky" type="QActive * const" visibility="0x00" properties="0x00"/>
@@ -81,6 +89,15 @@ QTimeEvt_ctorX(&amp;me-&gt;timeEvt, &amp;me-&gt;super, TIMEOUT_SIG, 0U);</code>
   </operation>
   <operation name="SerialDebug_ctor" type="void" visibility="0x00" properties="0x00">
    <code>SerialDebug * const me = &amp;l_serial_debug;
+
+/* Initial values */
+for (uint8_t i = 0; i &lt; sizeof(me-&gt;txbuf)-1; i++) {
+  me-&gt;txbuf[i] = 0U;
+}
+me-&gt;txbuf_head = 0U;
+me-&gt;txbuf_tail = 0U;
+
+/* Set initial state */
 QActive_ctor(&amp;me-&gt;super, Q_STATE_CAST(&amp;SerialDebug_initial));</code>
   </operation>
  </package>
@@ -101,6 +118,7 @@ $declare(AOs::AO_Blinky)
 #include &quot;application.h&quot;
 #include &quot;blinky.h&quot;
 #include &quot;bsp.h&quot;
+#include &lt;stdio.h&gt;
 
 Q_DEFINE_THIS_FILE
 

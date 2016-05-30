@@ -144,7 +144,7 @@ void BSP_init(void) {
     DMA1_Channel4->CCR |= DMA_CCR_PL_0;   /* Medium priority */
     DMA1_Channel4->CCR |= DMA_CCR_MINC;   /* Memory increment */
     DMA1_Channel4->CCR |= DMA_CCR_DIR;    /* Read from memory */
-    DMA1_Channel4->CNDTR = sizeof(uart_send_buffer);
+    DMA1_Channel4->CNDTR = 0;
     DMA1_Channel4->CPAR = (uint32_t)&USART1->TDR;
     DMA1_Channel4->CMAR = (uint32_t)&uart_send_buffer;
     /* TEST Circular DMA (should really spam the usart line) */
@@ -167,6 +167,10 @@ void BSP_ledOn(uint_fast8_t n) {
 /*..........................................................................*/
 void BSP_ledOff(uint_fast8_t n) {
   GPIOB->ODR |= (1U << 3);
+}
+
+void BSP_InitializeUart1DMA(volatile uint8_t txbuf[]) {
+  //(void) txbuf;
 }
 
 void BSP_sendString(const uint8_t* buf, uint8_t len) {

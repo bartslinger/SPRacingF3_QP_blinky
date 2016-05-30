@@ -26,11 +26,20 @@ Q_DEFINE_THIS_FILE
 typedef struct {
 /* protected: */
     QActive super;
+
+    /* Circular buffer for DMA TX */
+    volatile uint8_t txbuf[256];
+
+/* private: */
+
+    /* Counter for the circular buffer */
+    uint8_t txbuf_head;
+    uint8_t txbuf_tail;
 } SerialDebug;
 
 /* protected: */
 static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e);
-static QState SerialDebug_standby(SerialDebug * const me, QEvt const * const e);
+static QState SerialDebug_active(SerialDebug * const me, QEvt const * const e);
 
 
 /* Local objects */
@@ -43,20 +52,30 @@ QActive * const AO_SerialDebug = &l_serial_debug.super;
 /*${AOs::SerialDebug_ctor} .................................................*/
 void SerialDebug_ctor(void) {
     SerialDebug * const me = &l_serial_debug;
+
+    /* Initial values */
+    for (uint8_t i = 0; i < sizeof(me->txbuf)-1; i++) {
+      me->txbuf[i] = 0U;
+    }
+    me->txbuf_head = 0U;
+    me->txbuf_tail = 0U;
+
+    /* Set initial state */
     QActive_ctor(&me->super, Q_STATE_CAST(&SerialDebug_initial));
 }
 /*${AOs::SerialDebug} ......................................................*/
 /*${AOs::SerialDebug::SM} ..................................................*/
 static QState SerialDebug_initial(SerialDebug * const me, QEvt const * const e) {
     /* ${AOs::SerialDebug::SM::initial} */
+    BSP_InitializeUart1DMA(me->txbuf);
     QActive_subscribe(&me->super, SERIAL_DEBUG_MSG_SIG);
-    return Q_TRAN(&SerialDebug_standby);
+    return Q_TRAN(&SerialDebug_active);
 }
-/*${AOs::SerialDebug::SM::standby} .........................................*/
-static QState SerialDebug_standby(SerialDebug * const me, QEvt const * const e) {
+/*${AOs::SerialDebug::SM::active} ..........................................*/
+static QState SerialDebug_active(SerialDebug * const me, QEvt const * const e) {
     QState status_;
     switch (e->sig) {
-        /* ${AOs::SerialDebug::SM::standby::SERIAL_DEBUG_MSG} */
+        /* ${AOs::SerialDebug::SM::active::SERIAL_DEBUG_MSG} */
         case SERIAL_DEBUG_MSG_SIG: {
             BSP_sendString(Q_EVT_CAST(SerialDebugMsgEvt)->buffer, Q_EVT_CAST(SerialDebugMsgEvt)->length);
             status_ = Q_HANDLED();

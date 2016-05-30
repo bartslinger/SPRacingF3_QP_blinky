@@ -40,6 +40,7 @@ void BSP_init(void);
 void BSP_ledOff(uint_fast8_t n);
 void BSP_ledOn(uint_fast8_t n);
 
+void BSP_InitializeUart1DMA(volatile uint8_t txbuf[]);
 void BSP_sendString(const uint8_t *buf, uint8_t len);
 
 #endif /* bsp_h */
